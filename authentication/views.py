@@ -9,6 +9,8 @@ from authentication.serializers import (
     # CompletePasswordResetSerializer,
     # CompletePasswordResetSerializer,
     LoginSerializer,
+    PasswordResetNonLoggedInSerializer,
+    PasswordResetVerifyOTPSerializer,
     # PasswordResetVerifyOTPSerializer,
     # PasswordResetNonLoggedInSerializer,
     # PasswordChangeSerializer,
@@ -150,43 +152,40 @@ class BusinessDetail(generics.RetrieveUpdateAPIView):
         return Response({"status": True, "business": response})
 
 
-# class PasswordResetNonLoggedInUser(generics.GenericAPIView):
-#     serializer_class = PasswordResetNonLoggedInSerializer
+class PasswordResetNonLoggedInUser(generics.GenericAPIView):
+    serializer_class = PasswordResetNonLoggedInSerializer
 
-#     def post(self, *args, **kwargs):
-#         serializer = self.get_serializer(data=self.request.data)
-#         serializer.is_valid(raise_exception=True)
-#         email = serializer.validated_data["email"]
-#         user = common_user_services.get_user_by_email(email)
-#         pin = dependencies.generate_otp(user, operation=OTPOperations.OTHERS)
-#         email_data = {
-#             "subject": "Password reset OTP",
-#             "message": f"Your password reset OTP is {pin}",
-#         }
-#         # dependencies.send_email(user.email, email_data)
-#         email_notification(email_data["subject"], email_data["message"], user.email)
-#         return Response(
-#             {
-#                 "message": "An OTP has been sent to your email. Please verify to reset your password"
-#             },
-#             status=status.HTTP_200_OK,
-#         )
+    def post(self, *args, **kwargs):
+        serializer = self.get_serializer(data=self.request.data)
+        serializer.is_valid(raise_exception=True)
+        try:
+            email = serializer.validated_data["email"]
+            user = common.get_user_by_email(email)
+            otp = generate_otp(user.email)
+            print(otp)
+            user_otp = send_user_otp(otp, user.email)
+            return Response(user_otp)
+        except Exception as e:
+            return Response(
+                {"status": False, "message": str(e)},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
 
-# class PasswordResetVerifyOTP(generics.GenericAPIView):
-#     serializer_class = PasswordResetVerifyOTPSerializer
+class PasswordResetVerifyOTP(generics.GenericAPIView):
+    serializer_class = PasswordResetVerifyOTPSerializer
 
-#     def post(self, *args, **kwargs):
-#         serializer = self.get_serializer(data=self.request.data)
-#         serializer.is_valid(raise_exception=True)
-#         email = serializer.validated_data["email"]
-#         otp = serializer.validated_data["otp"]
-#         user = common_user_services.get_user_by_email(email)
-#         if not UserOTP.objects.filter(otp=otp, user=user).first():
-#             return Response({"message": "OTP invalid or expired"})
-#         return Response(
-#             {"message": "OTP verification successful"}, status=status.HTTP_200_OK
-#         )
+    def post(self, *args, **kwargs):
+        serializer = self.get_serializer(data=self.request.data)
+        serializer.is_valid(raise_exception=True)
+        email = serializer.validated_data["email"]
+        otp = serializer.validated_data["otp"]
+        user = common.get_user_by_email(email)
+        if not OTP.objects.filter(otp=otp, email=user.email).first():
+            return Response({"message": "OTP invalid or expired"})
+        return Response(
+            {"status": True, "message": "OTP verification successful"}, status=status.HTTP_200_OK
+        )
 
 
 # class CompletePasswordReset(generics.GenericAPIView):

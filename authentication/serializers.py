@@ -18,6 +18,7 @@ from urllib.parse import urljoin
 # from django.conf import settings
 from django.db import transaction
 
+from common.services import email_notification
 from team.models import Team, TeamMember
 
 class SendOTPSerializer(serializers.Serializer):
@@ -165,52 +166,53 @@ class UpdateBusinessSerializer(serializers.ModelSerializer):
         ]
 
 
-# class PasswordChangeSerializer(serializers.Serializer):
-#     password = serializers.CharField(write_only=True, required=True)
-#     new_password = serializers.CharField(
-#         write_only=True, required=True, validators=[validators.password_validator]
-#     )
-#     confirm_new_password = serializers.CharField(write_only=True, required=True)
+class PasswordResetNonLoggedInSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(required=True)
 
-#     def validate(self, attrs):
-#         if attrs.get("new_password") != attrs.get("confirm_new_password"):
-#             raise ValidationError("Passowrds do not match")
-#         return attrs
+    class Meta:
+        model = User
+        fields = ["email"]
 
-#     def save(self, **kwargs):
-#         request: Request = self.context.get("request")
-#         user_id = request.parser_context.get("kwargs").get("user_id")
-#         user = Business.objects.filter(
-#         password = self.validated_data["password"]
-#         new_password = self.validated_data["new_password"]
+class PasswordChangeSerializer(serializers.Serializer):
+    password = serializers.CharField(write_only=True, required=True)
+    new_password = serializers.CharField(
+        write_only=True, required=True, validators=[validators.password_validator]
+    )
+    confirm_new_password = serializers.CharField(write_only=True, required=True)
 
-#         if not user.check_password(password):
-#             raise serializers.ValidationError("Current password is incorrect")
-#         user.set_password(new_password)
-#         user.save()
-#         email_data = {
-#             "subject": "Password Change",
-#             "message": "Your password has been changed successfully",
-#         }
-#         email_notification(email_data["subject"], email_data["message"], user.email)
-#         return user
+    def validate(self, attrs):
+        if attrs.get("new_password") != attrs.get("confirm_new_password"):
+            raise ValidationError("Passowrds do not match")
+        return attrs
+
+    def save(self, **kwargs):
+        request: Request = self.context.get("request")
+        user_id = request.parser_context.get("kwargs").get("user_id")
+        user = Business.objects.filter()
+        password = self.validated_data["password"]
+        new_password = self.validated_data["new_password"]
+
+        if not user.check_password(password):
+            raise serializers.ValidationError("Current password is incorrect")
+        user.set_password(new_password)
+        user.save()
+        email_data = {
+            "subject": "Password Change",
+            "message": "Your password has been changed successfully",
+        }
+        email_notification(email_data["subject"], email_data["message"], user.email)
+        return user
 
 
-# class PasswordResetNonLoggedInSerializer(serializers.ModelSerializer):
-#     email = serializers.EmailField(required=True)
-
-#     class Meta:
-#         model = User
-#         fields = ["email"]
 
 
-# class PasswordResetVerifyOTPSerializer(serializers.ModelSerializer):
-#     email = serializers.EmailField(required=True)
-#     otp = serializers.CharField(write_only=True, required=True)
+class PasswordResetVerifyOTPSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(required=True)
+    otp = serializers.CharField(write_only=True, required=True)
 
-#     class Meta:
-#         model = User
-#         fields = ["email", "otp"]
+    class Meta:
+        model = User
+        fields = ["email", "otp"]
 
 
 # class CompletePasswordResetSerializer(serializers.ModelSerializer):
