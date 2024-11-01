@@ -1,6 +1,7 @@
 from django.urls import path
 from authentication.views import (
 
+    CompletePasswordReset,
     CreateUser,
     # GetBusinessDetails,
     LoginUser,
@@ -24,7 +25,7 @@ urlpatterns = [
     # path("user/<uuid:user_id>/change-password/logged-in-user/", PasswordChangeLoggedInUser.as_view(), name="change-password-loggedin"),
     path("user/reset-password", PasswordResetNonLoggedInUser.as_view(), name="reset-password"),
     path("user/reset-password/otp-verify", PasswordResetVerifyOTP.as_view(), name="reset-password-verify-otp"),
-    # path("user/complete-reset-password/", CompletePasswordReset.as_view(), name="complete-reset-password"),
+    path("user/complete-reset-password/", CompletePasswordReset.as_view(), name="complete-reset-password"),
     # path(
     #     "user/<uuid:pk>/kyc-documents-upload/",
     #     UploadUserDocuments.as_view(),

@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from authentication.models import OTP, Business, User
 from authentication.serializers import (
     BusinessSerializer,
+    CompletePasswordResetSerializer,
     # CompletePasswordResetSerializer,
     # CompletePasswordResetSerializer,
     LoginSerializer,
@@ -25,7 +26,8 @@ from authentication.serializers import (
 from common.services import CommonUserServices, generate_otp, send_user_otp
 from django.db import transaction
 from rest_framework_simplejwt.tokens import RefreshToken
-from team.models import TeamMember
+from common.services import email_notification
+
 
 common = CommonUserServices
 
@@ -181,36 +183,38 @@ class PasswordResetVerifyOTP(generics.GenericAPIView):
         email = serializer.validated_data["email"]
         otp = serializer.validated_data["otp"]
         user = common.get_user_by_email(email)
-        if not OTP.objects.filter(otp=otp, email=user.email).first():
+        user_otp = OTP.objects.filter(otp=otp, email=user.email).first()
+        if not user_otp:
             return Response({"message": "OTP invalid or expired"})
+        user_otp.is_verified = True
+        user_otp.save()
         return Response(
             {"status": True, "message": "OTP verification successful"}, status=status.HTTP_200_OK
         )
 
 
-# class CompletePasswordReset(generics.GenericAPIView):
-#     serializer_class = CompletePasswordResetSerializer
+class CompletePasswordReset(generics.GenericAPIView):
+    serializer_class = CompletePasswordResetSerializer
 
-#     def post(self, *args, **kwargs):
-#         serializer = self.get_serializer(data=self.request.data)
-#         serializer.is_valid(raise_exception=True)
-#         email = serializer.validated_data["email"]
-#         otp = serializer.validated_data["otp"]
-#         password = serializer.validated_data["password"]
-#         user = common_user_services.get_user_by_email(email)
-#         if not UserOTP.objects.filter(otp=otp, user=user).first():
-#             return Response({"message": "OTP invalid or expired"})
-#         user.set_password(password)
-#         user.save()
-#         email_data = {
-#             "subject": "Password Reset Successful",
-#             "message": "Your password has been reset successfully",
-#         }
-#         # dependencies.send_email(user.email, email_data)
-#         email_notification(email_data["subject"], email_data["message"], user.email)
-#         return Response(
-#             {"message": "Password updated successfully"}, status=status.HTTP_200_OK
-#         )
+    def post(self, *args, **kwargs):
+        serializer = self.get_serializer(data=self.request.data)
+        serializer.is_valid(raise_exception=True)
+        email = serializer.validated_data["email"]
+        otp = serializer.validated_data["otp"]
+        password = serializer.validated_data["password"]
+        user = common.get_user_by_email(email)
+        if not OTP.objects.filter(otp=otp, email=user.email, is_verified=True).first():
+            return Response({"message": "OTP invalid or expired"})
+        user.set_password(password)
+        user.save()
+        email_data = {
+            "subject": "Password Reset Successful",
+            "message": "Your password has been reset successfully",
+        }
+        email_notification(email_data["subject"], email_data["message"], user.email)
+        return Response(
+            {"message": "Password updated successfully"}, status=status.HTTP_200_OK
+        )
 
 
 from django.shortcuts import render

@@ -215,14 +215,14 @@ class PasswordResetVerifyOTPSerializer(serializers.ModelSerializer):
         fields = ["email", "otp"]
 
 
-# class CompletePasswordResetSerializer(serializers.ModelSerializer):
-#     email = serializers.EmailField(required=True)
-#     password = serializers.CharField(write_only=True, required=True)
-#     otp = serializers.CharField(write_only=True, required=True)
+class CompletePasswordResetSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(required=True)
+    password = serializers.CharField(write_only=True, required=True)
+    otp = serializers.CharField(write_only=True, required=True)
 
-#     class Meta:
-#         model = User
-#         fields = ["email", "otp", "password"]
+    class Meta:
+        model = User
+        fields = ["email", "otp", "password"]
 
 
 
