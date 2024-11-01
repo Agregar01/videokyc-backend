@@ -1,3 +1,7 @@
 from django.contrib import admin
 
-# Register your models here.
+from common.models import Country, Currency, FeeRate
+
+admin.site.register(Country)
+admin.site.register(FeeRate)
+admin.site.register(Currency)

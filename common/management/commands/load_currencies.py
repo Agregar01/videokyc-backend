@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand, CommandError
 import time
 import requests
-from common.models import Country
+from common.models import Currency
 
 
 API_KEY = "VXpCb1BNSU5aNUVnV1Rzc3dqanJSb3NtQUZIMUNIbWtUbkFlbmZ3Tw=="  # Not a secret
@@ -35,7 +35,7 @@ class Command(BaseCommand):
             print("Success")
 
             country_objs = []
-            existing_countries = [country.code for country in Country.objects.all()]
+            existing_countries = [country.code for country in Currency.objects.all()]
             countries_to_create = [
                 country
                 for country in all_countries
@@ -50,12 +50,9 @@ class Command(BaseCommand):
                 if country_detail:
                     print("Country details...")
                     country_objs.append(
-                        Country(
-                            name=country_detail["name"],
-                            code=country_detail["iso2"],
-                            currency_code=country_detail["currency"],
-                            currency_name=country_detail["currency_name"],
-                            phone_code=country_detail["phonecode"],
+                        Currency(
+                            code=country_detail["currency"],
+                            name=country_detail["currency_name"],
                         )
                     )
 
@@ -63,7 +60,7 @@ class Command(BaseCommand):
                     print("breaking...")
                     break
                 time.sleep(0.5)
-            Country.objects.bulk_create(country_objs, ignore_conflicts=True)
+            Currency.objects.bulk_create(country_objs, ignore_conflicts=True)
         else:
             print("Failed")
             pass

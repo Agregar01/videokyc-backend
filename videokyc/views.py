@@ -4,8 +4,7 @@ from rest_framework.parsers import FormParser, MultiPartParser
 from django.db import transaction
 from django.utils import timezone
 from datetime import datetime, timedelta
-from apikeys.models import APIKeys, Account
-from common.services import CommonSerivces
+# from apikeys.models import APIKeys, Account
 from videokyc.models import EMAIL_STATUS_CHOICES, VERIFICATION_STATUS_CHOICES, ImageComparison, Link
 from videokyc.serializers import SendEmailSerializer, CompleteVerficationSerializer, GetVerficationsSerializer, VerficationDetailSerializer
 from rest_framework.response import Response
@@ -15,7 +14,6 @@ from rest_framework.pagination import PageNumberPagination
 
 from videokyc.utils import get_extra_request_details, get_request_data
 
-common = CommonSerivces
 # verifier = DeepFaceVerifier
 
 

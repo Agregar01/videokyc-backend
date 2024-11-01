@@ -1,9 +1,6 @@
 from django.urls import path
-
-from common.views import CountryView, DocumentTypeView
-
+from common.views import ResendOTP
 
 urlpatterns = [
-    path("document-type/", DocumentTypeView.as_view(), name = "document-type"),
-    path("countries/", CountryView.as_view(), name = "countries"),
+    path("user/<uuid:user_id>/resend-otp/", ResendOTP.as_view(), name="resend-otp"),
 ]

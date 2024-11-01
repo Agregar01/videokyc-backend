@@ -1,14 +1,19 @@
-from rest_framework.generics import ListCreateAPIView
+from rest_framework import generics
+from rest_framework.exceptions import NotFound
 
-from common.models import Country, DocumentType
-from common.serializers import CountrySerializer, DocumentTypeSerializer
+from authentication.models import User
+from common.services import generate_otp, send_user_otp
+from rest_framework.response import Response
 
 
-# Create your views here.
-class DocumentTypeView(ListCreateAPIView):
-    serializer_class = DocumentTypeSerializer
-    queryset = DocumentType.objects.all()
-    
-class CountryView(ListCreateAPIView):
-    serializer_class = CountrySerializer
-    queryset = Country.objects.all()
+class ResendOTP(generics.GenericAPIView):
+
+    def post(self, *args, **kwargs):
+        user_id = self.request.parser_context.get("kwargs").get("user_id")
+        try:
+            user = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            raise NotFound("User not found")
+        pin = generate_otp(user.email)
+        user_otp = send_user_otp(pin, user.email)
+        return Response(user_otp)
