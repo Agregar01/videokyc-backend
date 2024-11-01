@@ -47,7 +47,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/v1/common/", include("common.urls")),
     path("api/v1/video-kyc/", include("videokyc.urls")),
-    # path("api/v1/apikeys/", include("apikeys.urls")),
+    path("api/v1/apikeys/", include("apikey.urls")),
     path("", include("authentication.urls")),
     path("teams/", include("team.urls")),
 ]

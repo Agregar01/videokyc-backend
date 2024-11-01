@@ -15,7 +15,7 @@ class APIKey(BaseModel):
     key = models.CharField(max_length=100, unique=True)
     environment = models.CharField(max_length=10, default=APIKeyStatuses.TEST.value)
     created_at = models.DateTimeField(auto_now_add=True)
-    account = models.ForeignKey(Business, related_name='api_keys', on_delete=models.CASCADE)
+    business = models.ForeignKey(Business, related_name='api_keys', on_delete=models.CASCADE)
 
 
     def save(self, *args, **kwargs):
